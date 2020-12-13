@@ -4,7 +4,8 @@
   "repository": "https://github.com/githubmhjao/alma-isgoodat-painting",
   "env": {
     "CHANNEL_ACCESS_TOKEN": "your channel access token",
-    "CHANNEL_SECRET": "your channel secret"
+    "CHANNEL_SECRET": "your channel secret",
+    "YOUR_HEROKU_APP_NAME": "your Heroku App name"
   },
   "addons": ["heroku-postgresql:hobby-dev"],
   "success_url": "/"
