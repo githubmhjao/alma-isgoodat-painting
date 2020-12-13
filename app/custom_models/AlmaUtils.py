@@ -15,4 +15,4 @@ def save_image(input_array, token):
     im = Image.fromarray(input_array)
     file_path = f'/tmp/{token}_DualTone.png'
     im.save(file_path)    
-    return f'https://{os.getenv("HEROKU_APP_NAME")}.herokuapp.com/result/{token}'
+    return f'https://{os.getenv("YOUR_HEROKU_APP_NAME")}.herokuapp.com/result/{token}'
