@@ -1,42 +1,60 @@
+import os
 import numpy as np
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageOps
+from PIL import ImageEnhance
 
-def to_array(input_im):
+def get_image(message_content, file_name):
+    file_path = f"/tmp/{file_name}.png"
+
+    with open(file_path, 'wb') as fd:
+        for chunk in message_content.iter_content():
+            fd.write(chunk)
+            
+    im = Image.open(file_path)    
+    return im
+
+def sigmoid(x, alpha):
+    return 1 /(1 + np.exp(-x * alpha))
+
+def create_gradient_layer(layer_im, gradient_factor, first_tone, second_tone):
+    layer_gradient = Image.new('RGB', layer_im.size)
+    draw = ImageDraw.Draw(layer_gradient)
+
+    for i in range(layer_im.size[0]):
+        value = sigmoid(i - layer_im.size[0] / 2, gradient_factor / layer_im.size[0])
+        fill_color = np.array(first_tone) * value + np.array(second_tone) * (1 - value)
+        draw.line([(i, 0), (i, layer_im.size[1]-1)], fill=tuple(fill_color.astype('int')))
+
+    return layer_gradient
+
+def dual_tone_run(im, mode, gradient_factor, first_tone, second_tone):
+
+    color_dict = {
+        'red':    {'blend': (100, 10, 0),  'composite': (100, 10, 0),  'composite_invert': (255, 0, 0)},
+        'orange': {'blend': (100, 50, 0),  'composite': (100, 50, 0),  'composite_invert': (255, 120, 0)},
+        'yellow': {'blend': (100, 100, 0), 'composite': (100, 100, 0), 'composite_invert': (255, 255, 0)},
+        'green':  {'blend': (10, 100, 0),  'composite': (10, 100, 0),  'composite_invert': (0, 255, 0)},
+        'blue':   {'blend': (0, 10, 100),  'composite': (0, 10, 100),  'composite_invert': (0, 0, 255)},
+        'purple': {'blend': (50, 0, 100),  'composite': (50, 0, 100),  'composite_invert': (120, 0, 255)} 
+    }
+
+    layer_im = im.convert('RGBA')
+
+    first_tone = color_dict[first_tone][mode]
+    second_tone = color_dict[second_tone][mode]
+    layer_gradient = create_gradient_layer(layer_im, gradient_factor, first_tone, second_tone).convert('RGBA')
     
-    return np.array(input_im)
-    
-def simple_gray(input_array):
-    
-    return np.mean(np.array(input_array), axis=2)
-    
-def lkre_color_curve(input_array, alpha, beta=50):
-    """
-    param alpha: original grayscale
-    param beta : adjusted grayscale
-    """
-    
-    def leaky_relu(input_value, alpha, beta):
-        if input_value < alpha:
-            return input_value * beta / alpha
-        else:
-            return (input_value - alpha) * (255 - beta) / (255 - alpha) + beta
-        
-    vec_relu = np.vectorize(leaky_relu)
-    
-    return vec_relu(input_array, alpha, beta).astype(np.uint8)
-    
-def dual_tone(input_array, rgb_right, rgb_left):
-    
-    assert len(input_array.shape) == 2
-    
-    input_x, input_y = input_array.shape
-    alpha_channel = np.ones((input_x, input_y, 1)) * 255
-    
-    # Use np.logspace instead of np.linspace
-    rgb_right_channel = np.tile(np.logspace(0, 1, input_y), (input_x, 1))[:, :, np.newaxis] * rgb_right
-    rgb_left_channel  = np.tile(np.logspace(1, 0, input_y), (input_x, 1))[:, :, np.newaxis] * rgb_left
-    rgb_dual_channel = rgb_right_channel + rgb_left_channel
-    
-    input_array_dual = input_array[:, :, np.newaxis] / 255 * rgb_dual_channel
-    input_array_dual = np.concatenate((input_array_dual, alpha_channel), axis=2).astype('int')
-    
-    return np.minimum(input_array_dual, 255).astype(np.uint8)
+    if mode == 'blend':
+        dual_tone = Image.blend(layer_im, layer_gradient, 0.5)
+    elif mode == 'composite':
+        dual_tone = Image.composite(layer_im, layer_gradient, layer_im.convert('L'))
+    elif mode == 'composite_invert':
+        dual_tone = Image.composite(layer_im, layer_gradient, ImageOps.invert(layer_im.convert('L')).convert('L'))
+    return ImageEnhance.Color(dual_tone).enhance(2)
+
+def save_image(im, token):
+    file_path = f'/tmp/{token}_DualTone.png'
+    im.save(file_path)    
+    return f'https://{os.getenv("YOUR_HEROKU_APP_NAME")}.herokuapp.com/result/{token}'
