@@ -5,7 +5,9 @@
   "env": {
     "CHANNEL_ACCESS_TOKEN": "your channel access token",
     "CHANNEL_SECRET": "your channel secret",
-    "YOUR_HEROKU_APP_NAME": "your Heroku App name"
+    "YOUR_HEROKU_APP_NAME": "your Heroku App name", 
+    "NOTIFY_CLIENT_ID": "your Notify client ID", 
+    "NOTIFY_CLIENT_SECRET": "your Notify client secret"
   },
   "addons": ["heroku-postgresql:hobby-dev"],
   "success_url": "/"
