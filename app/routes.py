@@ -7,7 +7,7 @@ from linebot.exceptions import InvalidSignatureError
 
 @app.route("/")
 def index():
-    return send_from_directory('/app/', filename='Hello.jpg')
+    return send_from_directory('/app/', filename='Hello.png')
 
 @app.route("/result/<token>")
 def get_image_url(token):
