@@ -22,7 +22,7 @@ def callback_notify():
     
     success = AlmaNotify.handle_subscribe(code, state)
 
-    return '恭喜完成訂閱！請關閉此視窗。'
+    return '恭喜完成 LINE Notify 連動！請關閉此視窗。'
 
 # 接收 LINE 的資訊
 @app.route("/callback", methods=['POST'])
