@@ -5,7 +5,7 @@ from linebot.models import MessageEvent, TextMessage, ImageMessage, PostbackEven
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    AlmaTalks.default_reply(event.source.user_id, event.message.text, event.reply_token)
+    AlmaTalks.default_reply(event)
 
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_image(event):
